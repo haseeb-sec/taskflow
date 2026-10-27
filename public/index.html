@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow | My Tasks</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="TaskFlow home">
+        <span class="brand-mark">t.</span>
+        <span>taskflow</span>
+      </a>
+
+      <nav class="navigation" aria-label="Task filters">
+        <p class="nav-label">WORKSPACE</p>
+
+        <button class="nav-item active" data-filter="all" type="button">
+          <span class="nav-symbol">≡</span>
+          <span>All tasks</span>
+        </button>
+
+        <button class="nav-item" data-filter="pending" type="button">
+          <span class="nav-symbol">○</span>
+          <span>To do</span>
+        </button>
+
+        <button class="nav-item" data-filter="completed" type="button">
+          <span class="nav-symbol">✓</span>
+          <span>Completed</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="note-line"></span>
+        <p>A little progress<br>is still progress.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <span class="breadcrumb">Workspace <span>/</span> My tasks</span>
+        <span class="today-label" id="today-label"></span>
+      </header>
+
+      <section class="tasks-section">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">YOUR WORKSPACE</p>
+            <h1>My tasks<span class="heading-period">.</span></h1>
+            <p class="page-description">
+              Keep track of what needs doing, one task at a time.
+            </p>
+          </div>
+
+          <button class="primary-button" id="show-form-button" type="button">
+            <span aria-hidden="true">+</span> New task
+          </button>
+        </div>
+
+        <section class="task-form-section" id="task-form-section" hidden>
+          <div class="form-heading">
+            <h2>New task</h2>
+            <button class="text-button" id="cancel-form-button" type="button">
+              Cancel
+            </button>
+          </div>
+
+          <form id="task-form">
+            <label for="task-title">Task title <span>*</span></label>
+            <input
+              id="task-title"
+              name="title"
+              type="text"
+              maxlength="120"
+              placeholder="What needs to be done?"
+              required
+            >
+
+            <label for="task-description">Description <span class="optional">(optional)</span></label>
+            <textarea
+              id="task-description"
+              name="description"
+              rows="3"
+              maxlength="1000"
+              placeholder="Add a few details..."
+            ></textarea>
+
+            <label for="task-due-date">Due date <span class="optional">(optional)</span></label>
+            <input id="task-due-date" name="dueDate" type="date">
+
+            <div class="form-actions">
+              <button class="secondary-button" id="discard-button" type="button">
+                Cancel
+              </button>
+              <button class="primary-button" type="submit">
+                Create task
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <p class="message" id="app-message" role="status" aria-live="polite"></p>
+
+        <div class="list-toolbar">
+          <h2 id="list-heading">All tasks</h2>
+          <span class="task-count" id="task-count">Loading tasks...</span>
+        </div>
+
+        <div class="task-list" id="task-list" aria-live="polite">
+          <div class="list-state">Loading your tasks...</div>
+        </div>
+
+        <p class="list-footer">
+          TaskFlow <span>·</span> A clearer way to get things done.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
