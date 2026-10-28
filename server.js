@@ -108,6 +108,97 @@ app.post("/tasks", (req, res) => {
   }
 });
 
+// PUT /tasks/:id: update an existing task.
+app.put("/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { title, description = "", dueDate = null, status } = req.body;
+
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ error: "Invalid task ID." });
+  }
+
+  if (typeof title !== "string" || !title.trim()) {
+    return res.status(400).json({ error: "Task title is required." });
+  }
+
+  if (title.trim().length > 120) {
+    return res.status(400).json({
+      error: "Task title must be 120 characters or fewer."
+    });
+  }
+
+  if (typeof description !== "string" || description.length > 1000) {
+    return res.status(400).json({
+      error: "Description must be 1000 characters or fewer."
+    });
+  }
+
+  if (!["pending", "completed"].includes(status)) {
+    return res.status(400).json({ error: "Invalid task status." });
+  }
+
+  if (
+    dueDate !== null &&
+    (typeof dueDate !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) ||
+      Number.isNaN(Date.parse(`${dueDate}T00:00:00Z`)) ||
+      new Date(`${dueDate}T00:00:00Z`).toISOString().slice(0, 10) !== dueDate)
+  ) {
+    return res.status(400).json({ error: "Please provide a valid due date." });
+  }
+
+  try {
+    const result = db.prepare(`
+      UPDATE tasks
+      SET title = ?, description = ?, due_date = ?, status = ?
+      WHERE id = ?
+    `).run(title.trim(), description.trim(), dueDate, status, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Task not found." });
+    }
+
+    const task = db.prepare(`
+      SELECT
+        id,
+        title,
+        description,
+        due_date AS dueDate,
+        status,
+        created_at AS createdAt
+      FROM tasks
+      WHERE id = ?
+    `).get(id);
+
+    res.json(task);
+  } catch (error) {
+    console.error("Could not update task:", error.message);
+    res.status(500).json({ error: "Could not update the task." });
+  }
+});
+// DELETE /tasks/:id: delete an existing task.
+app.delete("/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ error: "Invalid task ID." });
+  }
+
+  try {
+    const result = db.prepare(`
+      DELETE FROM tasks WHERE id = ?
+    `).run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Task not found." });
+    }
+
+    res.json({ message: "Task deleted successfully.", id });
+  } catch (error) {
+    console.error("Could not delete task:", error.message);
+    res.status(500).json({ error: "Could not delete the task." });
+  }
+});
 // Start the server.
 app.listen(PORT, () => {
   console.log(`TaskFlow is running at http://localhost:${PORT}`);

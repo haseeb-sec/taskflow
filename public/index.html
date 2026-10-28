@@ -5,13 +5,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TaskFlow | My Tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
     <aside class="sidebar">
       <a class="brand" href="#" aria-label="TaskFlow home">
-        <span class="brand-mark">t.</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.5 12.5L10 17L19 7.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
         <span>taskflow</span>
       </a>
 
@@ -60,6 +67,39 @@
             <span aria-hidden="true">+</span> New task
           </button>
         </div>
+
+        <section class="overview-section" aria-label="Task overview">
+          <div class="overview-heading">
+            <div>
+              <p class="eyebrow">AT A GLANCE</p>
+              <h2>Your progress</h2>
+            </div>
+            <span class="overview-caption">A little progress adds up.</span>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card stat-total">
+              <span class="stat-label">Total tasks</span>
+              <div class="stat-value" id="stat-total">—</div>
+              <span class="stat-note">Across your workspace</span>
+            </article>
+            <article class="stat-card stat-pending">
+              <span class="stat-label">To do</span>
+              <div class="stat-value" id="stat-pending">—</div>
+              <span class="stat-note">Still on your list</span>
+            </article>
+            <article class="stat-card stat-completed">
+              <span class="stat-label">Completed</span>
+              <div class="stat-value" id="stat-completed">—</div>
+              <span class="stat-note">Progress you've made</span>
+            </article>
+            <article class="stat-card stat-overdue">
+              <span class="stat-label">Overdue</span>
+              <div class="stat-value" id="stat-overdue">—</div>
+              <span class="stat-note">Past their due date</span>
+            </article>
+          </div>
+        </section>
 
         <section class="task-form-section" id="task-form-section" hidden>
           <div class="form-heading">

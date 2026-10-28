@@ -12,6 +12,7 @@ const todayLabel = document.getElementById("today-label");
 
 let tasks = [];
 let activeFilter = "all";
+let editingTaskId = null;
 
 const filterNames = {
   all: "All tasks",
@@ -47,10 +48,7 @@ function formatDueDate(dateString) {
 function createTaskRow(task) {
   const row = document.createElement("article");
   row.className = "task-row";
-
-  if (task.status === "completed") {
-    row.classList.add("completed");
-  }
+  row.classList.add(task.status === "completed" ? "completed" : "pending");
 
   const marker = document.createElement("span");
   marker.className = "task-marker";
@@ -60,11 +58,19 @@ function createTaskRow(task) {
   const content = document.createElement("div");
   content.className = "task-content";
 
+  const headingRow = document.createElement("div");
+  headingRow.className = "task-heading-row";
+
   const title = document.createElement("h3");
   title.className = "task-title";
   title.textContent = task.title;
 
-  content.appendChild(title);
+  const status = document.createElement("span");
+  status.className = `task-status status-${task.status === "completed" ? "completed" : "pending"}`;
+  status.textContent = task.status === "completed" ? "Completed" : "To do";
+
+  headingRow.append(title, status);
+  content.appendChild(headingRow);
 
   if (task.description) {
     const description = document.createElement("p");
@@ -78,28 +84,141 @@ function createTaskRow(task) {
 
   if (task.dueDate) {
     const dueDate = document.createElement("span");
-    dueDate.className = "task-due-date";
-    dueDate.textContent = formatDueDate(task.dueDate);
+    const now = new Date();
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    const isOverdue = task.status !== "completed" && task.dueDate < today;
+    dueDate.className = `task-due-date${isOverdue ? " overdue" : ""}`;
+    dueDate.textContent = isOverdue
+      ? `Overdue · ${formatDueDate(task.dueDate).replace("Due ", "")}`
+      : formatDueDate(task.dueDate);
     metadata.appendChild(dueDate);
   }
 
-  if (task.status === "completed") {
-    const status = document.createElement("span");
-    status.textContent = "Completed";
-    metadata.appendChild(status);
-  } else {
-    const status = document.createElement("span");
-    status.textContent = "To do";
-    metadata.appendChild(status);
-  }
-
   content.appendChild(metadata);
+
+  const actions = document.createElement("div");
+  actions.className = "task-actions";
+
+  const completeButton = document.createElement("button");
+  completeButton.type = "button";
+  completeButton.className = "task-action-button";
+  completeButton.textContent =
+    task.status === "completed" ? "Mark pending" : "Complete";
+  completeButton.addEventListener("click", () => updateTask(task.id, {
+    title: task.title,
+    description: task.description,
+    dueDate: task.dueDate,
+    status: task.status === "completed" ? "pending" : "completed"
+  }));
+
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "task-action-button";
+  editButton.textContent = "Edit";
+  editButton.addEventListener("click", () => editTask(task));
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "task-action-button delete";
+  deleteButton.textContent = "Delete";
+  deleteButton.addEventListener("click", () => deleteTask(task.id));
+
+  actions.append(completeButton, editButton, deleteButton);
+  content.appendChild(actions);
   row.append(marker, content);
 
   return row;
 }
 
+async function updateTask(id, updatedTask) {
+  showMessage("");
+
+  try {
+    const response = await fetch(`/tasks/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedTask)
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not update the task.");
+    }
+
+    tasks = tasks.map(task => task.id === id ? result : task);
+    renderTasks();
+    showMessage("Task updated successfully.", "success");
+  } catch (error) {
+    showMessage(error.message || "Could not update the task.", "error");
+  }
+}
+
+function editTask(task) {
+  editingTaskId = task.id;
+  document.getElementById("task-title").value = task.title;
+  document.getElementById("task-description").value = task.description || "";
+  document.getElementById("task-due-date").value = task.dueDate || "";
+
+  const heading = formSection.querySelector("h2, h3");
+  if (heading) heading.textContent = "Edit task";
+
+  taskForm.querySelector('button[type="submit"]').textContent = "Save changes";
+  formSection.hidden = false;
+  showFormButton.hidden = true;
+  showMessage("");
+  document.getElementById("task-title").focus();
+}
+
+async function deleteTask(id) {
+  if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+  showMessage("");
+
+  try {
+    const response = await fetch(`/tasks/${id}`, { method: "DELETE" });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not delete the task.");
+    }
+
+    tasks = tasks.filter(task => task.id !== id);
+    renderTasks();
+    showMessage("Task deleted successfully.", "success");
+  } catch (error) {
+    showMessage(error.message || "Could not delete the task.", "error");
+  }
+}
+
+function updateDashboardStats() {
+  const today = new Date();
+  const localToday = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0")
+  ].join("-");
+
+  const completed = tasks.filter(task => task.status === "completed").length;
+  const pending = tasks.filter(task => task.status !== "completed").length;
+  const overdue = tasks.filter(task =>
+    task.status !== "completed" &&
+    task.dueDate &&
+    task.dueDate < localToday
+  ).length;
+
+  document.getElementById("stat-total").textContent = tasks.length;
+  document.getElementById("stat-pending").textContent = pending;
+  document.getElementById("stat-completed").textContent = completed;
+  document.getElementById("stat-overdue").textContent = overdue;
+}
+
 function renderTasks() {
+  updateDashboardStats();
   taskList.replaceChildren();
 
   const visibleTasks = tasks.filter(task => {
@@ -154,6 +273,13 @@ async function loadTasks() {
 }
 
 function openForm() {
+  editingTaskId = null;
+  taskForm.reset();
+
+  const heading = formSection.querySelector("h2, h3");
+  if (heading) heading.textContent = "New task";
+
+  taskForm.querySelector('button[type="submit"]').textContent = "Create task";
   formSection.hidden = false;
   showFormButton.hidden = true;
   showMessage("");
@@ -164,6 +290,12 @@ function closeForm() {
   formSection.hidden = true;
   showFormButton.hidden = false;
   taskForm.reset();
+  editingTaskId = null;
+
+  const heading = formSection.querySelector("h2, h3");
+  if (heading) heading.textContent = "New task";
+
+  taskForm.querySelector('button[type="submit"]').textContent = "Create task";
 }
 
 showFormButton.addEventListener("click", openForm);
@@ -201,22 +333,20 @@ taskForm.addEventListener("submit", async event => {
     return;
   }
 
-  const newTask = {
-    title,
-    description,
-    dueDate: dueDate || null
-  };
+  const taskData = { title, description, dueDate: dueDate || null };
+  const wasEditing = editingTaskId !== null;
+  const url = wasEditing ? `/tasks/${editingTaskId}` : "/tasks";
 
   submitButton.disabled = true;
-  submitButton.textContent = "Saving...";
+  submitButton.textContent = wasEditing ? "Saving..." : "Creating...";
 
   try {
-    const response = await fetch("/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(newTask)
+    const response = await fetch(url, {
+      method: wasEditing ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(wasEditing
+        ? { ...taskData, status: tasks.find(task => task.id === editingTaskId)?.status || "pending" }
+        : taskData)
     });
 
     const result = await response.json();
@@ -225,9 +355,15 @@ taskForm.addEventListener("submit", async event => {
       throw new Error(result.error || "Could not save the task.");
     }
 
-    tasks.unshift(result);
-    activeFilter = "all";
+    if (wasEditing) {
+      tasks = tasks.map(task => task.id === editingTaskId ? result : task);
+      showMessage("Task updated successfully.", "success");
+    } else {
+      tasks.unshift(result);
+      showMessage("Task created successfully.", "success");
+    }
 
+    activeFilter = "all";
     document.querySelectorAll(".nav-item").forEach(button => {
       const selected = button.dataset.filter === "all";
       button.classList.toggle("active", selected);
@@ -236,12 +372,12 @@ taskForm.addEventListener("submit", async event => {
 
     renderTasks();
     closeForm();
-    showMessage("Task created successfully.", "success");
+    showMessage(wasEditing ? "Task updated successfully." : "Task created successfully.", "success");
   } catch (error) {
     showMessage(error.message || "Could not save the task. Please try again.", "error");
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Create task";
+    submitButton.textContent = editingTaskId !== null ? "Save changes" : "Create task";
   }
 });
 
