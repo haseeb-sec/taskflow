@@ -1,0 +1,18 @@
+TaskFlow API Verification Results
+
+PASS | GET tasks | Expected 200, got 200
+PASS | Reject blank title | Expected 400, got 400
+PASS | Create task | Expected 201, got 201
+PASS | Read created task | Expected 200, got 200
+PASS | Edit task | Expected 200, got 200
+PASS | Reject invalid status | Expected 400, got 400
+PASS | Missing task returns 404 | Expected 404, got 404
+PASS | Delete test task | Expected 200, got 200
+PASS | Deleted task absent | Confirmed deleted ID is absent from GET /tasks results
+
+Additional deletion verification:
+PASS | Create temporary test task
+PASS | Delete temporary test task
+PASS | Verify deleted task is absent from database results
+
+All listed checks passed.

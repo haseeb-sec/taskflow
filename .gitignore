@@ -3,3 +3,12 @@ taskflow.db
 taskflow.db-shm
 taskflow.db-wal
 
+
+# Temporary backups
+*.backup
+*.before-redesign
+*.dashboard-backup
+*.dark-draft-backup
+*.day2-backup
+*.visual-backup-*
+*.premium-backup-*

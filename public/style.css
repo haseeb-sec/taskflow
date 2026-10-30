@@ -917,3 +917,63 @@ textarea {
   border-color: #aebdb1;
 }
 
+
+
+/* TASKFLOW PREMIUM FINISH: refined status colors and secondary quote */
+.task-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 5px 11px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.status-pending {
+  color: #765523;
+  background: #f7f0e3;
+  border-color: #e9dcc3;
+}
+
+.status-pending::before {
+  background: #b18a4b;
+}
+
+.status-completed {
+  color: #315b48;
+  background: #e8f1eb;
+  border-color: #cbded1;
+}
+
+.status-completed::before {
+  background: #56856b;
+}
+
+.overview-quote {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  padding: 10px 14px;
+  border-left: 2px solid #b7c9dc;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(100deg, #f3f6fa, rgba(243, 246, 250, 0.25));
+  color: #526781;
+  font-size: 12px;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.6;
+  text-align: left;
+}
+
+@media (max-width: 600px) {
+  .overview-quote {
+    max-width: 100%;
+    padding: 8px 11px;
+  }
+}
